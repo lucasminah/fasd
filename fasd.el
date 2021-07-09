@@ -59,19 +59,13 @@ Fasd has the following options:
 to specify multiple flags separate them by spaces, e.g. `-a -r'"
   :type 'string)
 
-  (defun fasd-find-file-action (file)
-    (if (file-readable-p file)
-        (if (file-directory-p file)
-            (if (fboundp 'counsel-find-file)
-                (counsel-find-file file)
-              (funcall fasd-file-manager file))
-          (find-file file))
-      (message "Directory or file `%s' doesn't exist" file)))
-
-(when (featurep 'ivy)
-  (ivy-set-actions
-   'fasd-find-file
-   '(("o" fasd-find-file-action "find-file"))))
+(defun fasd-find-file-action (file)
+  "Browse directory or find file."
+  (if (file-readable-p file)
+      (if (file-directory-p file)
+          (funcall fasd-file-manager file)
+        (find-file file))
+    (message "Directory or file `%s' doesn't exist" file)))
 
 ;;;###autoload
 (defun fasd-find-file (prefix &optional query)
