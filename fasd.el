@@ -37,6 +37,9 @@
 When set to nil, all fasd results are returned for completion"
   :type 'boolean)
 
+(defvar fasd-query-history nil
+  "History of queries passed to `fasd-find-file'.")
+
 (defcustom fasd-file-manager 'dired
   "A default set of file managers to use with `fasd-find-file'"
   :type '(radio
