@@ -68,19 +68,24 @@ to specify multiple flags separate them by spaces, e.g. `-a -r'"
     (message "Directory or file `%s' doesn't exist" file)))
 
 ;;;###autoload
-(defun fasd-find-file (prefix &optional query)
+(defun fasd-find-file (prefix &optional query list)
   "Use fasd to open a file, or a directory with dired.
 If PREFIX is positive consider only directories.
 If PREFIX is -1 consider only files.
 If PREFIX is nil consider files and directories.
-QUERY can be passed optionally to avoid the prompt."
+
+QUERY can be passed optionally to avoid the prompt.
+
+If LIST is non-nil, prompt for selection from a
+list of results. Otherwise select the first result."
   (interactive "P")
   (if (not (executable-find "fasd"))
       (error "Fasd executable cannot be found.  It is required by `fasd.el'.  Cannot use `fasd-find-file'")
-    (unless query (setq query (if fasd-enable-initial-prompt
-                                  (read-from-minibuffer "Fasd query: ")
-                                "")))
-    (let* ((prompt "Fasd query: ")
+    (let* ((this-query (if query
+                           query
+                         (if fasd-enable-initial-prompt
+                             (completing-read "Fasd query: " nil nil nil nil 'fasd-query-history)
+                           "")))
            (results
             (split-string
              (shell-command-to-string
@@ -89,18 +94,15 @@ QUERY can be passed optionally to avoid the prompt."
                         (`-1 " -f ")
                         ((pred (< 1)) " -d ")
                         (_ (concat " " fasd-standard-search " ")))
-                      query))
+                      this-query))
              "\n" t))
            (file (when results
-                   ;; set `this-command' to `fasd-find-file' is required because
-                   ;; `read-from-minibuffer' modifies its value, while `ivy-completing-read'
-                   ;; assumes it to be its caller
-                   (setq this-command 'fasd-find-file)
-                   (completing-read prompt results nil t))))
-        (if (not file)
-            (message "Fasd found nothing for query `%s'" query)
-            (unless (featurep 'ivy)
-              (fasd-find-file-action file))))))
+                   (if list
+                       (completing-read "Jump to: " results nil t)
+                     (car results)))))
+      (if (not file)
+          (message "Fasd found nothing for query `%s'" this-query)
+        (fasd-find-file-action file)))))
 
 ;;;###autoload
 (defun fasd-add-file-to-db ()
