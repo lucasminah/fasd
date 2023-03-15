@@ -115,7 +115,7 @@ list of results. Otherwise select the first result."
       (when (and file
                  (stringp file)
                  (file-readable-p file))
-        (start-process "*fasd*" nil "fasd" "--add" file)))))
+        (start-process-shell-command "*fasd*" nil (concat "fasd --add " file))))))
 
 ;;;###autoload
 (define-minor-mode global-fasd-mode
